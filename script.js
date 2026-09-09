@@ -1,4 +1,16 @@
 // ========================================
+// CONNEXION SUPABASE
+// ========================================
+
+const SUPABASE_URL = "https://ffhaeyaguvyjhxmnginc.supabase.co";
+
+const SUPABASE_KEY = "sb_publishable_wQkHwu_t087F_GCMc8bTKA_AT7ubyt-";
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+// ========================================
 // RECETTES DE DEPART
 // ========================================
 
@@ -2320,3 +2332,37 @@ function actualiser() {
 // ========================================
 
 actualiser();
+
+async function testerConnexionSupabase() {
+
+    const { data, error } =
+        await supabaseClient
+            .from("stock")
+            .select("*")
+            .limit(1);
+
+    if (error) {
+
+        console.error(
+            "Erreur Supabase :",
+            error
+        );
+
+        alert(
+            "❌ La connexion à Supabase ne fonctionne pas."
+        );
+
+        return;
+    }
+
+    console.log(
+        "✅ Connexion Supabase réussie !",
+        data
+    );
+
+    alert(
+        "✅ Connexion à Supabase réussie !"
+    );
+}
+
+testerConnexionSupabase();
