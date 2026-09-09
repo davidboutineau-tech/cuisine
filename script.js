@@ -209,31 +209,110 @@ if (recettesEnPreparationSauvegardees) {
 // ========================================
 
 function sauvegarder() {
+    localStorage.setItem("recettes", JSON.stringify(recettes));
+    localStorage.setItem("stock", JSON.stringify(stock));
+    localStorage.setItem("listeCourses", JSON.stringify(listeCourses));
+    localStorage.setItem("recettesEnPreparation", JSON.stringify(recettesEnPreparation));
 
-    localStorage.setItem(
-        "recettes",
-        JSON.stringify(recettes)
-    );
-
-    localStorage.setItem(
-        "stock",
-        JSON.stringify(stock)
-    );
-
-    localStorage.setItem(
-        "listeCourses",
-        JSON.stringify(listeCourses)
-    );
-
-    localStorage.setItem(
-        "recettesEnPreparation",
-        JSON.stringify(
-            recettesEnPreparation
-        )
-    );
-
+    synchroniserStockSupabase();
+    synchroniserListeCoursesSupabase();
 }
 
+// ========================================
+// SYNCHRONISER LE STOCK AVEC SUPABASE
+// ========================================
+
+async function synchroniserStockSupabase() {
+
+    // Supprimer l'ancien stock en ligne
+    const { error: erreurSuppression } =
+        await supabaseClient
+            .from("stock")
+            .delete()
+            .neq("id", 0);
+
+    if (erreurSuppression) {
+
+        console.error(
+            "Erreur suppression stock Supabase :",
+            erreurSuppression
+        );
+
+        return;
+    }
+
+    // Préparer le stock actuel
+    const donnees = stock.map(function (ingredient) {
+
+        return {
+            nom: ingredient.nom,
+            quantite: ingredient.quantite,
+            unite: ingredient.unite
+        };
+
+    });
+
+    // Envoyer le nouveau stock
+    if (donnees.length > 0) {
+
+        const { error: erreurInsertion } =
+            await supabaseClient
+                .from("stock")
+                .insert(donnees);
+
+        if (erreurInsertion) {
+
+            console.error(
+                "Erreur synchronisation stock :",
+                erreurInsertion
+            );
+
+            return;
+        }
+    }
+
+    console.log(
+        "✅ Stock synchronisé avec Supabase"
+    );
+}
+
+// ========================================
+// SYNCHRONISER LA LISTE DE COURSES AVEC SUPABASE
+// ========================================
+async function synchroniserListeCoursesSupabase() {
+    const { error: erreurSuppression } =
+        await supabaseClient
+            .from("liste_courses")
+            .delete()
+            .neq("id", 0);
+
+    if (erreurSuppression) {
+        console.error("Erreur suppression liste de courses Supabase :", erreurSuppression);
+        return;
+    }
+
+    const donnees = listeCourses.map(function (ingredient) {
+        return {
+            nom: ingredient.nom,
+            quantite: ingredient.quantite,
+            unite: ingredient.unite
+        };
+    });
+
+    if (donnees.length > 0) {
+        const { error: erreurInsertion } =
+            await supabaseClient
+                .from("liste_courses")
+                .insert(donnees);
+
+        if (erreurInsertion) {
+            console.error("Erreur synchronisation liste de courses :", erreurInsertion);
+            return;
+        }
+    }
+
+    console.log("✅ Liste de courses synchronisée avec Supabase");
+}
 
 // ========================================
 // TROUVER DANS LE STOCK
@@ -2326,43 +2405,173 @@ function actualiser() {
 
 }
 
-
 // ========================================
-// DEMARRER
+// CHARGER LE STOCK DEPUIS SUPABASE
 // ========================================
 
-actualiser();
-
-async function testerConnexionSupabase() {
+async function chargerStockDepuisSupabase() {
 
     const { data, error } =
         await supabaseClient
             .from("stock")
             .select("*")
-            .limit(1);
+            .order("id");
 
     if (error) {
 
         console.error(
-            "Erreur Supabase :",
+            "Erreur lors du chargement du stock :",
             error
         );
 
         alert(
-            "❌ La connexion à Supabase ne fonctionne pas."
+            "❌ Impossible de charger le stock depuis Supabase."
         );
 
         return;
     }
 
-    console.log(
-        "✅ Connexion Supabase réussie !",
-        data
+    if (!data || data.length === 0) {
+        return;
+    }
+
+    stock = data.map(function (ingredient) {
+
+        return {
+            nom: ingredient.nom,
+            quantite: Number(ingredient.quantite),
+            unite: ingredient.unite
+        };
+
+    });
+
+    // Garder également une copie locale
+    localStorage.setItem(
+        "stock",
+        JSON.stringify(stock)
     );
 
-    alert(
-        "✅ Connexion à Supabase réussie !"
+    actualiser();
+
+    console.log(
+        "✅ Stock chargé depuis Supabase",
+        stock
     );
 }
 
-testerConnexionSupabase();
+// ========================================
+// CHARGER LA LISTE DE COURSES DEPUIS SUPABASE
+// ========================================
+async function chargerListeCoursesDepuisSupabase() {
+    const { data, error } = await supabaseClient
+        .from("liste_courses")
+        .select("*")
+        .order("id", { ascending: true });
+
+    if (error) {
+        console.error("Erreur chargement liste de courses :", error);
+        return;
+    }
+
+    listeCourses = data.map(function (ingredient) {
+        return {
+            nom: ingredient.nom,
+            quantite: Number(ingredient.quantite),
+            unite: ingredient.unite
+        };
+    });
+
+    localStorage.setItem("listeCourses", JSON.stringify(listeCourses));
+
+    console.log("✅ Liste de courses chargée depuis Supabase");
+}
+
+// ========================================
+// DEMARRER
+// ========================================
+
+async function demarrerApplication() {
+    await chargerStockDepuisSupabase();
+    await chargerListeCoursesDepuisSupabase();
+    actualiser();
+}
+
+demarrerApplication();
+
+// ========================================
+// ENVOYER LE STOCK ACTUEL VERS SUPABASE
+// ========================================
+
+async function envoyerStockVersSupabase() {
+
+    // Vérifier si Supabase contient déjà des données
+    const { data: stockExistant, error: erreurLecture } =
+        await supabaseClient
+            .from("stock")
+            .select("id")
+            .limit(1);
+
+    if (erreurLecture) {
+
+        console.error(
+            "Erreur lors de la lecture du stock :",
+            erreurLecture
+        );
+
+        alert("❌ Impossible de lire le stock Supabase.");
+
+        return;
+    }
+
+    // Si le stock Supabase n'est pas vide,
+    // on ne touche à rien.
+    if (stockExistant.length > 0) {
+
+        alert(
+            "⚠️ Le stock Supabase contient déjà des données.\n\n" +
+            "Aucune donnée n'a été modifiée."
+        );
+
+        return;
+    }
+
+    // Préparer les données à envoyer
+    const donnees = stock.map(function (ingredient) {
+
+        return {
+            nom: ingredient.nom,
+            quantite: ingredient.quantite,
+            unite: ingredient.unite
+        };
+
+    });
+
+    // Envoyer le stock
+    const { error } =
+        await supabaseClient
+            .from("stock")
+            .insert(donnees);
+
+    if (error) {
+
+        console.error(
+            "Erreur lors de l'envoi du stock :",
+            error
+        );
+
+        alert(
+            "❌ Le stock n'a pas pu être envoyé vers Supabase."
+        );
+
+        return;
+    }
+
+    alert(
+        "✅ Ton stock a été envoyé dans Supabase !"
+    );
+
+    console.log(
+        "Stock envoyé :",
+        donnees
+    );
+}
