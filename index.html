@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ma cuisine</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+    <!-- ============================= -->
+    <!-- TITRE -->
+    <!-- ============================= -->
+
+    <header>
+
+        <h1>🍳 Ma cuisine</h1>
+
+        <p>
+            Trouve les recettes que tu peux réaliser
+            avec ce que tu as chez toi.
+        </p>
+
+    </header>
+
+
+
+    <!-- ============================= -->
+    <!-- MON STOCK -->
+    <!-- ============================= -->
+
+    <section>
+
+        <h2>🧺 Mon stock</h2>
+
+
+        <div class="form-stock">
+
+            <input
+                type="text"
+                id="nouvelIngredient"
+                placeholder="Ingrédient"
+            >
+
+
+            <input
+                type="number"
+                id="quantiteIngredient"
+                placeholder="Quantité"
+                min="0"
+                step="0.1"
+            >
+
+
+            <select id="uniteIngredient">
+
+                <option value="g">
+                    grammes (g)
+                </option>
+
+                <option value="kg">
+                    kilogrammes (kg)
+                </option>
+
+                <option value="ml">
+                    millilitres (ml)
+                </option>
+
+                <option value="cl">
+                    centilitres (cl)
+                </option>
+
+                <option value="l">
+                    litres (l)
+                </option>
+
+                <option value="pièce">
+                    pièce(s)
+                </option>
+
+            </select>
+
+
+            <button
+                onclick="ajouterIngredient()"
+            >
+                Ajouter
+            </button>
+
+        </div>
+
+
+        <div id="stock"></div>
+
+    </section>
+
+
+
+    <!-- ============================= -->
+    <!-- AJOUTER UNE RECETTE -->
+    <!-- ============================= -->
+
+    <section>
+
+        <h2>➕ Ajouter une recette</h2>
+
+
+        <input
+            type="text"
+            id="nomRecette"
+            class="nom-recette"
+            placeholder="Nom de la recette"
+        >
+
+
+        <h3>Ingrédients</h3>
+
+
+        <div
+            id="listeIngredientsRecette"
+            class="liste-ingredients"
+        ></div>
+
+
+        <div class="form-ingredient-recette">
+
+
+            <input
+                type="text"
+                id="nomIngredientRecette"
+                placeholder="Ingrédient"
+            >
+
+
+            <input
+                type="number"
+                id="quantiteIngredientRecette"
+                placeholder="Quantité"
+                min="0"
+                step="0.1"
+            >
+
+
+            <select id="uniteIngredientRecette">
+
+                <option value="g">
+                    g
+                </option>
+
+                <option value="kg">
+                    kg
+                </option>
+
+                <option value="ml">
+                    ml
+                </option>
+
+                <option value="cl">
+                    cl
+                </option>
+
+                <option value="l">
+                    l
+                </option>
+
+                <option value="pièce">
+                    pièce
+                </option>
+
+            </select>
+
+
+            <button
+                onclick="ajouterIngredientRecette()"
+            >
+                +
+            </button>
+
+        </div>
+
+
+        <button
+            class="bouton-recette"
+            onclick="ajouterRecette()"
+        >
+            🍽️ Ajouter la recette
+        </button>
+
+    <section>
+        <div class="titre-recettes">
+            <h2>🛒 Ma liste de courses</h2>
+           <div>
+    		<button onclick="envoyerListeParMail()">
+      		  📧 Envoyer par mail
+   		 </button>
+
+   		 <button onclick="faireLesCourses()">
+     		  🛍️ J'ai fait les courses
+    		 </button>
+
+   		 <button onclick="viderListeCourses()">
+       		  🗑️ Vider
+   		 </button>
+	   </div>
+
+        <div id="listeCourses"></div>
+    </section>
+
+
+
+    <!-- ============================= -->
+    <!-- MES RECETTES -->
+    <!-- ============================= -->
+
+    <section>
+
+
+        <div class="titre-recettes">
+
+            <h2>🍽️ Mes recettes</h2>
+
+            <span id="nombreRecettes"></span>
+
+        </div>
+
+
+        <div id="recettes"></div>
+
+
+    </section>
+
+
+</div>
+
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
