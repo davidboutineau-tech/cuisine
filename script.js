@@ -2599,8 +2599,8 @@ document.getElementById("connexion").style.display = "none";
 
 await chargerStockDepuisSupabase();
 await chargerListeCoursesDepuisSupabase();
-actualiser();
 await chargerRecettesDepuisSupabase();
+actualiser();
 }
 
 async function demarrerApplication() {
