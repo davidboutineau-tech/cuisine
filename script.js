@@ -543,31 +543,20 @@ async function synchroniserListeCoursesSupabase() {
 
         } else {
 
-            supabaseClient
-                .from("liste_courses")
-                .insert({
-                    nom:
-                        article.nom,
-                    quantite:
-                        article.quantite,
-                    unite:
-                        article.unite,
-                    user_id:
-                        STOCK_PARTAGE_USER_ID
-                })
-                .then(function (resultat) {
-
-                    if (resultat.error) {
-
-                        console.error(
-                            "Erreur ajout liste :",
-                            resultat.error
-                        );
-
-                    }
-
-                });
-
+            operations.push(
+    supabaseClient
+        .from("liste_courses")
+        .insert({
+            nom:
+                article.nom,
+            quantite:
+                article.quantite,
+            unite:
+                article.unite,
+            user_id:
+                STOCK_PARTAGE_USER_ID
+        })
+);
         }
 
     });
