@@ -406,28 +406,16 @@ async function synchroniserStockSupabase() {
                 );
 
 
-            if (serveur) {
+                        if (serveur) {
 
-                supabaseClient
-                    .from("stock")
-                    .delete()
-                    .eq("id", serveur.id)
-                    .then(function (resultat) {
+                operations.push(
+                    supabaseClient
+                        .from("stock")
+                        .delete()
+                        .eq("id", serveur.id)
+                );
 
-                        if (resultat.error) {
-
-                            console.error(
-                                "Erreur suppression stock :",
-                                resultat.error
-                            );
-
-                        }
-
-                    });
-
-            }
-
-        }
+            }        }
     );
 
 
