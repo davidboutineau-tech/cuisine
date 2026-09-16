@@ -2510,9 +2510,13 @@ async function seConnecter() {
     }
 
     console.log("✅ Connexion réussie :", data.user.email);
-    message.textContent = "✅ Connexion réussie !";
+message.textContent = "✅ Connexion réussie !";
 
-    document.getElementById("connexion").style.display = "none";
+document.getElementById("connexion").style.display = "none";
+
+await chargerStockDepuisSupabase();
+await chargerListeCoursesDepuisSupabase();
+actualiser();
 }
 
 async function demarrerApplication() {
