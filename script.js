@@ -529,14 +529,19 @@ async function synchroniserListeCoursesSupabase() {
 
         if (serveur) {
 
-            supabaseClient
-                .from("liste_courses")
-                .update({
-                    quantite:
-                        article.quantite,
-                    unite:
-                        article.unite
-                })
+    operations.push(
+        supabaseClient
+            .from("liste_courses")
+            .update({
+                quantite:
+                    article.quantite,
+                unite:
+                    article.unite
+            })
+            .eq("id", serveur.id)
+    );
+
+}
                 .eq("id", serveur.id)
                 .then(function (resultat) {
 
