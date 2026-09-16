@@ -2516,6 +2516,15 @@ async function seConnecter() {
 }
 
 async function demarrerApplication() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+        document.getElementById("connexion").style.display = "block";
+        return;
+    }
+
+    document.getElementById("connexion").style.display = "none";
+
     await chargerStockDepuisSupabase();
     await chargerListeCoursesDepuisSupabase();
     actualiser();
