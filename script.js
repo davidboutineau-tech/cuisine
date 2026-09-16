@@ -527,34 +527,19 @@ async function synchroniserListeCoursesSupabase() {
         }
 
 
-        if (serveur) {
+                if (serveur) {
 
-    operations.push(
-        supabaseClient
-            .from("liste_courses")
-            .update({
-                quantite:
-                    article.quantite,
-                unite:
-                    article.unite
-            })
-            .eq("id", serveur.id)
-    );
-
-}
-                .eq("id", serveur.id)
-                .then(function (resultat) {
-
-                    if (resultat.error) {
-
-                        console.error(
-                            "Erreur mise à jour liste :",
-                            resultat.error
-                        );
-
-                    }
-
-                });
+            operations.push(
+                supabaseClient
+                    .from("liste_courses")
+                    .update({
+                        quantite:
+                            article.quantite,
+                        unite:
+                            article.unite
+                    })
+                    .eq("id", serveur.id)
+            );
 
         } else {
 
