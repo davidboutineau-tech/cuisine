@@ -611,10 +611,33 @@ async function synchroniserListeCoursesSupabase() {
     );
 
 
-    listeCoursesSupabaseDernierEtat =
-        JSON.parse(
-            JSON.stringify(listeCourses)
-        );
+   // Attendre la fin de toutes les opérations Supabase
+if (operations.length > 0) {
+
+    const resultats =
+        await Promise.all(operations);
+
+    resultats.forEach(function (resultat) {
+
+        if (resultat.error) {
+
+            console.error(
+                "Erreur synchronisation liste de courses :",
+                resultat.error
+            );
+
+        }
+
+    });
+
+}
+
+
+// Mettre à jour la référence locale
+listeCoursesSupabaseDernierEtat =
+    JSON.parse(
+        JSON.stringify(listeCourses)
+    );
 
 
     console.log(
