@@ -344,23 +344,13 @@ async function synchroniserStockSupabase() {
             operations.push(
     supabaseClient
         .from("stock")
-        .update({
+        .insert({
+            nom: ingredient.nom,
             quantite: ingredient.quantite,
-            unite: ingredient.unite
+            unite: ingredient.unite,
+            user_id: STOCK_PARTAGE_USER_ID
         })
-        .eq("id", serveur.id)
-); 
-
-                    if (resultat.error) {
-
-                        console.error(
-                            "Erreur mise à jour stock :",
-                            resultat.error
-                        );
-
-                    }
-
-                });
+);
 
                 } else {
 
