@@ -2583,6 +2583,8 @@ async function demarrerApplication() {
 
 demarrerApplication();
 
+synchroniserRecettesSupabase();
+
 // ========================================
 // ENVOYER LE STOCK ACTUEL VERS SUPABASE
 // ========================================
