@@ -2490,6 +2490,31 @@ async function chargerListeCoursesDepuisSupabase() {
 // DEMARRER
 // ========================================
 
+// ========================================
+// CONNEXION SUPABASE
+// ========================================
+async function seConnecter() {
+    const email = document.getElementById("emailConnexion").value;
+    const motDePasse = document.getElementById("motDePasseConnexion").value;
+    const message = document.getElementById("messageConnexion");
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: motDePasse
+    });
+
+    if (error) {
+        console.error("Erreur connexion :", error);
+        message.textContent = "❌ Adresse e-mail ou mot de passe incorrect.";
+        return;
+    }
+
+    console.log("✅ Connexion réussie :", data.user.email);
+    message.textContent = "✅ Connexion réussie !";
+
+    document.getElementById("connexion").style.display = "none";
+}
+
 async function demarrerApplication() {
     await chargerStockDepuisSupabase();
     await chargerListeCoursesDepuisSupabase();
