@@ -339,20 +339,19 @@ async function synchroniserStockSupabase() {
         }
 
 
-        if (serveur) {
+                if (serveur) {
 
             operations.push(
-    supabaseClient
-        .from("stock")
-        .insert({
-            nom: ingredient.nom,
-            quantite: ingredient.quantite,
-            unite: ingredient.unite,
-            user_id: STOCK_PARTAGE_USER_ID
-        })
-);
+                supabaseClient
+                    .from("stock")
+                    .update({
+                        quantite: ingredient.quantite,
+                        unite: ingredient.unite
+                    })
+                    .eq("id", serveur.id)
+            );
 
-                } else {
+        } else {
 
             operations.push(
                 supabaseClient
@@ -365,19 +364,7 @@ async function synchroniserStockSupabase() {
                     })
             );
 
-        })
-                .then(function (resultat) {
-
-                    if (resultat.error) {
-
-                        console.error(
-                            "Erreur ajout stock :",
-                            resultat.error
-                        );
-
-                    }
-
-                });
+        }
 
         }
 
