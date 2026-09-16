@@ -330,11 +330,15 @@ async function synchroniserListeCoursesSupabase() {
 // ========================================
 async function synchroniserRecettesSupabase() {
 
+    const RECETTES_PARTAGEES_USER_ID =
+        "c9f5fccb-b37e-453a-a79a-826443fb1819";
+
+    // Supprimer uniquement les recettes partagées
     const { error: erreurSuppression } =
         await supabaseClient
             .from("recettes")
             .delete()
-            .neq("id", 0);
+            .eq("user_id", RECETTES_PARTAGEES_USER_ID);
 
     if (erreurSuppression) {
         console.error(
@@ -344,14 +348,17 @@ async function synchroniserRecettesSupabase() {
         return;
     }
 
+    // Préparer les recettes
     const donnees = recettes.map(function (recette) {
         return {
             nom: recette.nom,
             ingredients: recette.ingredients,
-            instructions: recette.instructions || null
+            instructions: recette.instructions || "",
+            user_id: RECETTES_PARTAGEES_USER_ID
         };
     });
 
+    // Réinsérer les recettes partagées
     if (donnees.length > 0) {
 
         const { error: erreurInsertion } =
@@ -368,7 +375,7 @@ async function synchroniserRecettesSupabase() {
         }
     }
 
-    console.log("✅ Recettes synchronisées avec Supabase");
+    console.log("✅ Recettes partagées synchronisées");
 }
 
 // ========================================
