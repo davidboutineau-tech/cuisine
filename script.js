@@ -813,6 +813,29 @@ async function synchroniserRecettesSupabase() {
     );
 
 
+        // Attendre la fin de toutes les opérations Supabase
+    if (operations.length > 0) {
+
+        const resultats =
+            await Promise.all(operations);
+
+        resultats.forEach(function (resultat) {
+
+            if (resultat.error) {
+
+                console.error(
+                    "Erreur synchronisation recettes :",
+                    resultat.error
+                );
+
+            }
+
+        });
+
+    }
+
+
+    // Mettre à jour la référence locale
     recettesSupabaseDernierEtat =
         JSON.parse(
             JSON.stringify(recettes)
