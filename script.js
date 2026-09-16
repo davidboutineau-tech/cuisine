@@ -351,7 +351,7 @@ async function synchroniserStockSupabase() {
         .eq("id", serveur.id)
 ); 
 
-                    {if (resultat.error) {
+                    if (resultat.error) {
 
                         console.error(
                             "Erreur mise à jour stock :",
