@@ -2534,6 +2534,42 @@ async function chargerListeCoursesDepuisSupabase() {
 }
 
 // ========================================
+// CHARGER LES RECETTES DEPUIS SUPABASE
+// ========================================
+async function chargerRecettesDepuisSupabase() {
+
+    const { data, error } = await supabaseClient
+        .from("recettes")
+        .select("*")
+        .order("id", { ascending: true });
+
+    if (error) {
+        console.error(
+            "Erreur chargement recettes :",
+            error
+        );
+        return;
+    }
+
+    recettes = data.map(function (recette) {
+        return {
+            nom: recette.nom,
+            ingredients: recette.ingredients,
+            instructions: recette.instructions || ""
+        };
+    });
+
+    localStorage.setItem(
+        "recettes",
+        JSON.stringify(recettes)
+    );
+
+    console.log(
+        "✅ Recettes chargées depuis Supabase"
+    );
+}
+
+// ========================================
 // DEMARRER
 // ========================================
 
@@ -2578,12 +2614,11 @@ async function demarrerApplication() {
 
     await chargerStockDepuisSupabase();
     await chargerListeCoursesDepuisSupabase();
+    await chargerRecettesDepuisSupabase();
     actualiser();
 }
 
 demarrerApplication();
-
-synchroniserRecettesSupabase();
 
 // ========================================
 // ENVOYER LE STOCK ACTUEL VERS SUPABASE
