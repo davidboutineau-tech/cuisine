@@ -366,8 +366,6 @@ async function synchroniserStockSupabase() {
 
         }
 
-        }
-
     });
 
 
