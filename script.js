@@ -220,7 +220,69 @@ function sauvegarder() {
 }
 
 // ========================================
-// SYNCHRONISER LE STOCK AVEC SUPABASE
+// SAUVEGARDE ET SYNCHRONISATION
+// ========================================
+
+let stockSupabaseDernierEtat = [];
+let listeCoursesSupabaseDernierEtat = [];
+let recettesSupabaseDernierEtat = [];
+
+let sauvegardeEnCours = Promise.resolve();
+
+
+function sauvegarder() {
+
+    // Sauvegarde locale immédiate
+    localStorage.setItem(
+        "recettes",
+        JSON.stringify(recettes)
+    );
+
+    localStorage.setItem(
+        "stock",
+        JSON.stringify(stock)
+    );
+
+    localStorage.setItem(
+        "listeCourses",
+        JSON.stringify(listeCourses)
+    );
+
+    localStorage.setItem(
+        "recettesEnPreparation",
+        JSON.stringify(recettesEnPreparation)
+    );
+
+
+    // Mettre les sauvegardes Supabase dans une file
+    // pour éviter plusieurs synchronisations simultanées
+    sauvegardeEnCours =
+        sauvegardeEnCours
+            .then(async function () {
+
+                await synchroniserStockSupabase();
+
+                await synchroniserListeCoursesSupabase();
+
+                await synchroniserRecettesSupabase();
+
+            })
+            .catch(function (erreur) {
+
+                console.error(
+                    "Erreur pendant la synchronisation :",
+                    erreur
+                );
+
+            });
+
+
+    return sauvegardeEnCours;
+}
+
+
+// ========================================
+// SYNCHRONISER LE STOCK
 // ========================================
 
 async function synchroniserStockSupabase() {
@@ -228,53 +290,201 @@ async function synchroniserStockSupabase() {
     const STOCK_PARTAGE_USER_ID =
         "c9f5fccb-b37e-453a-a79a-826443fb1819";
 
-    // Supprimer uniquement le stock partagé
-    const { error: erreurSuppression } =
+
+    const { data, error } =
         await supabaseClient
             .from("stock")
-            .delete()
+            .select("*")
             .eq("user_id", STOCK_PARTAGE_USER_ID);
 
-    if (erreurSuppression) {
+
+    if (error) {
+
         console.error(
-            "Erreur suppression stock Supabase :",
-            erreurSuppression
+            "Erreur lecture stock Supabase :",
+            error
         );
+
         return;
     }
 
-    // Préparer le stock actuel
-    const donnees = stock.map(function (ingredient) {
-        return {
-            nom: ingredient.nom,
-            quantite: ingredient.quantite,
-            unite: ingredient.unite,
-            user_id: STOCK_PARTAGE_USER_ID
-        };
-    });
 
-    // Réinsérer le stock partagé
-    if (donnees.length > 0) {
+    const stockServeur = data || [];
 
-        const { error: erreurInsertion } =
-            await supabaseClient
-                .from("stock")
-                .insert(donnees);
 
-        if (erreurInsertion) {
-            console.error(
-                "Erreur synchronisation stock :",
-                erreurInsertion
+    // Vérifier les modifications locales
+    stock.forEach(function (ingredient) {
+
+        const ancien =
+            stockSupabaseDernierEtat.find(
+                function (element) {
+
+                    return (
+                        element.nom ===
+                        ingredient.nom
+                    );
+
+                }
             );
+
+
+        const serveur =
+            stockServeur.find(
+                function (element) {
+
+                    return (
+                        element.nom ===
+                        ingredient.nom
+                    );
+
+                }
+            );
+
+
+        const aChange =
+            !ancien ||
+            Number(ancien.quantite) !==
+                Number(ingredient.quantite) ||
+            ancien.unite !==
+                ingredient.unite;
+
+
+        if (!aChange) {
             return;
         }
-    }
 
-    console.log("✅ Stock partagé synchronisé");
+
+        if (serveur) {
+
+            supabaseClient
+                .from("stock")
+                .update({
+                    quantite:
+                        ingredient.quantite,
+                    unite:
+                        ingredient.unite
+                })
+                .eq("id", serveur.id)
+                .then(function (resultat) {
+
+                    if (resultat.error) {
+
+                        console.error(
+                            "Erreur mise à jour stock :",
+                            resultat.error
+                        );
+
+                    }
+
+                });
+
+        } else {
+
+            supabaseClient
+                .from("stock")
+                .insert({
+                    nom:
+                        ingredient.nom,
+                    quantite:
+                        ingredient.quantite,
+                    unite:
+                        ingredient.unite,
+                    user_id:
+                        STOCK_PARTAGE_USER_ID
+                })
+                .then(function (resultat) {
+
+                    if (resultat.error) {
+
+                        console.error(
+                            "Erreur ajout stock :",
+                            resultat.error
+                        );
+
+                    }
+
+                });
+
+        }
+
+    });
+
+
+    // Détecter les suppressions locales
+    stockSupabaseDernierEtat.forEach(
+        function (ancien) {
+
+            const existeEncore =
+                stock.find(
+                    function (ingredient) {
+
+                        return (
+                            ingredient.nom ===
+                            ancien.nom
+                        );
+
+                    }
+                );
+
+
+            if (existeEncore) {
+                return;
+            }
+
+
+            const serveur =
+                stockServeur.find(
+                    function (element) {
+
+                        return (
+                            element.nom ===
+                            ancien.nom
+                        );
+
+                    }
+                );
+
+
+            if (serveur) {
+
+                supabaseClient
+                    .from("stock")
+                    .delete()
+                    .eq("id", serveur.id)
+                    .then(function (resultat) {
+
+                        if (resultat.error) {
+
+                            console.error(
+                                "Erreur suppression stock :",
+                                resultat.error
+                            );
+
+                        }
+
+                    });
+
+            }
+
+        }
+    );
+
+
+    // Mettre à jour la référence locale
+    stockSupabaseDernierEtat =
+        JSON.parse(
+            JSON.stringify(stock)
+        );
+
+
+    console.log(
+        "✅ Stock synchronisé sans suppression globale"
+    );
 }
 
+
 // ========================================
-// SYNCHRONISER LA LISTE DE COURSES AVEC SUPABASE
+// SYNCHRONISER LA LISTE DE COURSES
 // ========================================
 
 async function synchroniserListeCoursesSupabase() {
@@ -282,100 +492,403 @@ async function synchroniserListeCoursesSupabase() {
     const STOCK_PARTAGE_USER_ID =
         "c9f5fccb-b37e-453a-a79a-826443fb1819";
 
-    // Supprimer uniquement la liste de courses partagée
-    const { error: erreurSuppression } =
+
+    const { data, error } =
         await supabaseClient
             .from("liste_courses")
-            .delete()
+            .select("*")
             .eq("user_id", STOCK_PARTAGE_USER_ID);
 
-    if (erreurSuppression) {
+
+    if (error) {
+
         console.error(
-            "Erreur suppression liste de courses Supabase :",
-            erreurSuppression
+            "Erreur lecture liste de courses :",
+            error
         );
+
         return;
     }
 
-    const donnees = listeCourses.map(function (ingredient) {
-        return {
-            nom: ingredient.nom,
-            quantite: ingredient.quantite,
-            unite: ingredient.unite,
-            user_id: STOCK_PARTAGE_USER_ID
-        };
-    });
 
-    if (donnees.length > 0) {
+    const listeServeur = data || [];
 
-        const { error: erreurInsertion } =
-            await supabaseClient
-                .from("liste_courses")
-                .insert(donnees);
 
-        if (erreurInsertion) {
-            console.error(
-                "Erreur synchronisation liste de courses :",
-                erreurInsertion
+    listeCourses.forEach(function (article) {
+
+        const ancien =
+            listeCoursesSupabaseDernierEtat.find(
+                function (element) {
+
+                    return (
+                        element.nom ===
+                        article.nom
+                    );
+
+                }
             );
+
+
+        const serveur =
+            listeServeur.find(
+                function (element) {
+
+                    return (
+                        element.nom ===
+                        article.nom
+                    );
+
+                }
+            );
+
+
+        const aChange =
+            !ancien ||
+            Number(ancien.quantite) !==
+                Number(article.quantite) ||
+            ancien.unite !==
+                article.unite;
+
+
+        if (!aChange) {
             return;
         }
-    }
 
-    console.log("✅ Liste de courses partagée synchronisée");
+
+        if (serveur) {
+
+            supabaseClient
+                .from("liste_courses")
+                .update({
+                    quantite:
+                        article.quantite,
+                    unite:
+                        article.unite
+                })
+                .eq("id", serveur.id)
+                .then(function (resultat) {
+
+                    if (resultat.error) {
+
+                        console.error(
+                            "Erreur mise à jour liste :",
+                            resultat.error
+                        );
+
+                    }
+
+                });
+
+        } else {
+
+            supabaseClient
+                .from("liste_courses")
+                .insert({
+                    nom:
+                        article.nom,
+                    quantite:
+                        article.quantite,
+                    unite:
+                        article.unite,
+                    user_id:
+                        STOCK_PARTAGE_USER_ID
+                })
+                .then(function (resultat) {
+
+                    if (resultat.error) {
+
+                        console.error(
+                            "Erreur ajout liste :",
+                            resultat.error
+                        );
+
+                    }
+
+                });
+
+        }
+
+    });
+
+
+    // Détecter les suppressions locales
+    listeCoursesSupabaseDernierEtat.forEach(
+        function (ancien) {
+
+            const existeEncore =
+                listeCourses.find(
+                    function (article) {
+
+                        return (
+                            article.nom ===
+                            ancien.nom
+                        );
+
+                    }
+                );
+
+
+            if (existeEncore) {
+                return;
+            }
+
+
+            const serveur =
+                listeServeur.find(
+                    function (element) {
+
+                        return (
+                            element.nom ===
+                            ancien.nom
+                        );
+
+                    }
+                );
+
+
+            if (serveur) {
+
+                supabaseClient
+                    .from("liste_courses")
+                    .delete()
+                    .eq("id", serveur.id)
+                    .then(function (resultat) {
+
+                        if (resultat.error) {
+
+                            console.error(
+                                "Erreur suppression liste :",
+                                resultat.error
+                            );
+
+                        }
+
+                    });
+
+            }
+
+        }
+    );
+
+
+    listeCoursesSupabaseDernierEtat =
+        JSON.parse(
+            JSON.stringify(listeCourses)
+        );
+
+
+    console.log(
+        "✅ Liste de courses synchronisée sans suppression globale"
+    );
 }
 
+
 // ========================================
-// SYNCHRONISER LES RECETTES AVEC SUPABASE
+// SYNCHRONISER LES RECETTES
 // ========================================
+
 async function synchroniserRecettesSupabase() {
 
     const RECETTES_PARTAGEES_USER_ID =
         "c9f5fccb-b37e-453a-a79a-826443fb1819";
 
-    // Supprimer uniquement les recettes partagées
-    const { error: erreurSuppression } =
+
+    const { data, error } =
         await supabaseClient
             .from("recettes")
-            .delete()
-            .eq("user_id", RECETTES_PARTAGEES_USER_ID);
+            .select("*")
+            .eq(
+                "user_id",
+                RECETTES_PARTAGEES_USER_ID
+            );
 
-    if (erreurSuppression) {
+
+    if (error) {
+
         console.error(
-            "Erreur suppression recettes Supabase :",
-            erreurSuppression
+            "Erreur lecture recettes :",
+            error
         );
+
         return;
     }
 
-    // Préparer les recettes
-    const donnees = recettes.map(function (recette) {
-        return {
-            nom: recette.nom,
-            ingredients: recette.ingredients,
-            instructions: recette.instructions || "",
-            user_id: RECETTES_PARTAGEES_USER_ID
-        };
-    });
 
-    // Réinsérer les recettes partagées
-    if (donnees.length > 0) {
+    const recettesServeur = data || [];
 
-        const { error: erreurInsertion } =
-            await supabaseClient
-                .from("recettes")
-                .insert(donnees);
 
-        if (erreurInsertion) {
-            console.error(
-                "Erreur synchronisation recettes :",
-                erreurInsertion
+    recettes.forEach(function (recette) {
+
+        const ancien =
+            recettesSupabaseDernierEtat.find(
+                function (element) {
+
+                    return (
+                        element.nom ===
+                        recette.nom
+                    );
+
+                }
             );
+
+
+        const serveur =
+            recettesServeur.find(
+                function (element) {
+
+                    return (
+                        element.nom ===
+                        recette.nom
+                    );
+
+                }
+            );
+
+
+        const aChange =
+            !ancien ||
+            JSON.stringify(
+                ancien.ingredients
+            ) !==
+            JSON.stringify(
+                recette.ingredients
+            ) ||
+            (ancien.instructions || "") !==
+            (recette.instructions || "");
+
+
+        if (!aChange) {
             return;
         }
-    }
 
-    console.log("✅ Recettes partagées synchronisées");
+
+        if (serveur) {
+
+            supabaseClient
+                .from("recettes")
+                .update({
+                    nom:
+                        recette.nom,
+                    ingredients:
+                        recette.ingredients,
+                    instructions:
+                        recette.instructions || ""
+                })
+                .eq("id", serveur.id)
+                .then(function (resultat) {
+
+                    if (resultat.error) {
+
+                        console.error(
+                            "Erreur mise à jour recette :",
+                            resultat.error
+                        );
+
+                    }
+
+                });
+
+        } else {
+
+            supabaseClient
+                .from("recettes")
+                .insert({
+                    nom:
+                        recette.nom,
+                    ingredients:
+                        recette.ingredients,
+                    instructions:
+                        recette.instructions || "",
+                    user_id:
+                        RECETTES_PARTAGEES_USER_ID
+                })
+                .then(function (resultat) {
+
+                    if (resultat.error) {
+
+                        console.error(
+                            "Erreur ajout recette :",
+                            resultat.error
+                        );
+
+                    }
+
+                });
+
+        }
+
+    });
+
+
+    // Détecter les suppressions locales
+    recettesSupabaseDernierEtat.forEach(
+        function (ancien) {
+
+            const existeEncore =
+                recettes.find(
+                    function (recette) {
+
+                        return (
+                            recette.nom ===
+                            ancien.nom
+                        );
+
+                    }
+                );
+
+
+            if (existeEncore) {
+                return;
+            }
+
+
+            const serveur =
+                recettesServeur.find(
+                    function (element) {
+
+                        return (
+                            element.nom ===
+                            ancien.nom
+                        );
+
+                    }
+                );
+
+
+            if (serveur) {
+
+                supabaseClient
+                    .from("recettes")
+                    .delete()
+                    .eq("id", serveur.id)
+                    .then(function (resultat) {
+
+                        if (resultat.error) {
+
+                            console.error(
+                                "Erreur suppression recette :",
+                                resultat.error
+                            );
+
+                        }
+
+                    });
+
+            }
+
+        }
+    );
+
+
+    recettesSupabaseDernierEtat =
+        JSON.parse(
+            JSON.stringify(recettes)
+        );
+
+
+    console.log(
+        "✅ Recettes synchronisées sans suppression globale"
+    );
 }
 
 // ========================================
