@@ -597,26 +597,17 @@ async function synchroniserListeCoursesSupabase() {
 
             if (serveur) {
 
-                supabaseClient
-                    .from("liste_courses")
-                    .delete()
-                    .eq("id", serveur.id)
-                    .then(function (resultat) {
+    operations.push(
+        supabaseClient
+            .from("liste_courses")
+            .delete()
+            .eq("id", serveur.id)
+    );
 
-                        if (resultat.error) {
-
-                            console.error(
-                                "Erreur suppression liste :",
-                                resultat.error
-                            );
-
-                        }
-
-                    });
+}
 
             }
 
-        }
     );
 
 
