@@ -362,20 +362,20 @@ async function synchroniserStockSupabase() {
 
                 });
 
-        } else {
+                } else {
 
-            supabaseClient
-                .from("stock")
-                .insert({
-                    nom:
-                        ingredient.nom,
-                    quantite:
-                        ingredient.quantite,
-                    unite:
-                        ingredient.unite,
-                    user_id:
-                        STOCK_PARTAGE_USER_ID
-                })
+            operations.push(
+                supabaseClient
+                    .from("stock")
+                    .insert({
+                        nom: ingredient.nom,
+                        quantite: ingredient.quantite,
+                        unite: ingredient.unite,
+                        user_id: STOCK_PARTAGE_USER_ID
+                    })
+            );
+
+        })
                 .then(function (resultat) {
 
                     if (resultat.error) {
