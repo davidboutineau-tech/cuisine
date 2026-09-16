@@ -349,9 +349,9 @@ async function synchroniserStockSupabase() {
             unite: ingredient.unite
         })
         .eq("id", serveur.id)
-); {
+); 
 
-                    if (resultat.error) {
+                    {if (resultat.error) {
 
                         console.error(
                             "Erreur mise à jour stock :",
