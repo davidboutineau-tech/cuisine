@@ -3022,6 +3022,9 @@ async function chargerStockDepuisSupabase() {
 
     });
 
+    stockSupabaseDernierEtat =
+    JSON.parse(JSON.stringify(stock));
+
     // Garder également une copie locale
     localStorage.setItem(
         "stock",
@@ -3058,6 +3061,9 @@ async function chargerListeCoursesDepuisSupabase() {
         };
     });
 
+listeCoursesSupabaseDernierEtat =
+    JSON.parse(JSON.stringify(listeCourses));
+    
     localStorage.setItem("listeCourses", JSON.stringify(listeCourses));
 
     console.log("✅ Liste de courses chargée depuis Supabase");
@@ -3088,6 +3094,9 @@ async function chargerRecettesDepuisSupabase() {
             instructions: recette.instructions || ""
         };
     });
+
+    recettesSupabaseDernierEtat =
+    JSON.parse(JSON.stringify(recettes));
 
     localStorage.setItem(
         "recettes",
