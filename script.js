@@ -744,32 +744,22 @@ async function synchroniserRecettesSupabase() {
 
         } else {
 
-            supabaseClient
-                .from("recettes")
-                .insert({
-                    nom:
-                        recette.nom,
-                    ingredients:
-                        recette.ingredients,
-                    instructions:
-                        recette.instructions || "",
-                    user_id:
-                        RECETTES_PARTAGEES_USER_ID
-                })
-                .then(function (resultat) {
+    operations.push(
+        supabaseClient
+            .from("recettes")
+            .insert({
+                nom:
+                    recette.nom,
+                ingredients:
+                    recette.ingredients,
+                instructions:
+                    recette.instructions || "",
+                user_id:
+                    RECETTES_PARTAGEES_USER_ID
+            })
+    );
 
-                    if (resultat.error) {
-
-                        console.error(
-                            "Erreur ajout recette :",
-                            resultat.error
-                        );
-
-                    }
-
-                });
-
-        }
+}
 
     });
 
