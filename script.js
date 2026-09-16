@@ -225,35 +225,35 @@ function sauvegarder() {
 
 async function synchroniserStockSupabase() {
 
-    // Supprimer l'ancien stock en ligne
+    const STOCK_PARTAGE_USER_ID =
+        "c9f5fccb-b37e-453a-a79a-826443fb1819";
+
+    // Supprimer uniquement le stock partagé
     const { error: erreurSuppression } =
         await supabaseClient
             .from("stock")
             .delete()
-            .neq("id", 0);
+            .eq("user_id", STOCK_PARTAGE_USER_ID);
 
     if (erreurSuppression) {
-
         console.error(
             "Erreur suppression stock Supabase :",
             erreurSuppression
         );
-
         return;
     }
 
     // Préparer le stock actuel
     const donnees = stock.map(function (ingredient) {
-
         return {
             nom: ingredient.nom,
             quantite: ingredient.quantite,
-            unite: ingredient.unite
+            unite: ingredient.unite,
+            user_id: STOCK_PARTAGE_USER_ID
         };
-
     });
 
-    // Envoyer le nouveau stock
+    // Réinsérer le stock partagé
     if (donnees.length > 0) {
 
         const { error: erreurInsertion } =
@@ -262,33 +262,38 @@ async function synchroniserStockSupabase() {
                 .insert(donnees);
 
         if (erreurInsertion) {
-
             console.error(
                 "Erreur synchronisation stock :",
                 erreurInsertion
             );
-
             return;
         }
     }
 
-    console.log(
-        "✅ Stock synchronisé avec Supabase"
-    );
+    console.log("✅ Stock partagé synchronisé");
 }
 
 // ========================================
 // SYNCHRONISER LA LISTE DE COURSES AVEC SUPABASE
 // ========================================
+
 async function synchroniserListeCoursesSupabase() {
+
+    const STOCK_PARTAGE_USER_ID =
+        "c9f5fccb-b37e-453a-a79a-826443fb1819";
+
+    // Supprimer uniquement la liste de courses partagée
     const { error: erreurSuppression } =
         await supabaseClient
             .from("liste_courses")
             .delete()
-            .neq("id", 0);
+            .eq("user_id", STOCK_PARTAGE_USER_ID);
 
     if (erreurSuppression) {
-        console.error("Erreur suppression liste de courses Supabase :", erreurSuppression);
+        console.error(
+            "Erreur suppression liste de courses Supabase :",
+            erreurSuppression
+        );
         return;
     }
 
@@ -296,23 +301,28 @@ async function synchroniserListeCoursesSupabase() {
         return {
             nom: ingredient.nom,
             quantite: ingredient.quantite,
-            unite: ingredient.unite
+            unite: ingredient.unite,
+            user_id: STOCK_PARTAGE_USER_ID
         };
     });
 
     if (donnees.length > 0) {
+
         const { error: erreurInsertion } =
             await supabaseClient
                 .from("liste_courses")
                 .insert(donnees);
 
         if (erreurInsertion) {
-            console.error("Erreur synchronisation liste de courses :", erreurInsertion);
+            console.error(
+                "Erreur synchronisation liste de courses :",
+                erreurInsertion
+            );
             return;
         }
     }
 
-    console.log("✅ Liste de courses synchronisée avec Supabase");
+    console.log("✅ Liste de courses partagée synchronisée");
 }
 
 // ========================================
