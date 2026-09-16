@@ -679,6 +679,7 @@ async function synchroniserRecettesSupabase() {
 
     const recettesServeur = data || [];
 
+    const operations = [];
 
     recettes.forEach(function (recette) {
 
