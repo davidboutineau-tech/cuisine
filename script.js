@@ -419,6 +419,28 @@ async function synchroniserStockSupabase() {
     );
 
 
+        // Attendre la fin de toutes les opérations Supabase
+    if (operations.length > 0) {
+
+        const resultats =
+            await Promise.all(operations);
+
+        resultats.forEach(function (resultat) {
+
+            if (resultat.error) {
+
+                console.error(
+                    "Erreur synchronisation stock :",
+                    resultat.error
+                );
+
+            }
+
+        });
+
+    }
+
+
     // Mettre à jour la référence locale
     stockSupabaseDernierEtat =
         JSON.parse(
