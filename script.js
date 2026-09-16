@@ -728,29 +728,19 @@ async function synchroniserRecettesSupabase() {
 
         if (serveur) {
 
-            supabaseClient
-                .from("recettes")
-                .update({
-                    nom:
-                        recette.nom,
-                    ingredients:
-                        recette.ingredients,
-                    instructions:
-                        recette.instructions || ""
-                })
-                .eq("id", serveur.id)
-                .then(function (resultat) {
-
-                    if (resultat.error) {
-
-                        console.error(
-                            "Erreur mise à jour recette :",
-                            resultat.error
-                        );
-
-                    }
-
-                });
+    operations.push(
+        supabaseClient
+            .from("recettes")
+            .update({
+                nom:
+                    recette.nom,
+                ingredients:
+                    recette.ingredients,
+                instructions:
+                    recette.instructions || ""
+            })
+            .eq("id", serveur.id)
+    );              
 
         } else {
 
