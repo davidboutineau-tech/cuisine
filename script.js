@@ -484,6 +484,7 @@ async function synchroniserListeCoursesSupabase() {
 
     const listeServeur = data || [];
 
+    const operations = [];
 
     listeCourses.forEach(function (article) {
 
