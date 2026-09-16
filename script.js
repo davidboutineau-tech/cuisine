@@ -203,22 +203,6 @@ if (recettesEnPreparationSauvegardees) {
 
 }
 
-
-// ========================================
-// SAUVEGARDER
-// ========================================
-
-function sauvegarder() {
-    localStorage.setItem("recettes", JSON.stringify(recettes));
-    localStorage.setItem("stock", JSON.stringify(stock));
-    localStorage.setItem("listeCourses", JSON.stringify(listeCourses));
-    localStorage.setItem("recettesEnPreparation", JSON.stringify(recettesEnPreparation));
-
-    synchroniserStockSupabase();
-    synchroniserListeCoursesSupabase();
-    synchroniserRecettesSupabase();
-}
-
 // ========================================
 // SAUVEGARDE ET SYNCHRONISATION
 // ========================================
