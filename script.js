@@ -295,7 +295,8 @@ async function synchroniserStockSupabase() {
 
     const stockServeur = data || [];
 
-
+    const operations = [];
+    
     // Vérifier les modifications locales
     stock.forEach(function (ingredient) {
 
@@ -340,16 +341,15 @@ async function synchroniserStockSupabase() {
 
         if (serveur) {
 
-            supabaseClient
-                .from("stock")
-                .update({
-                    quantite:
-                        ingredient.quantite,
-                    unite:
-                        ingredient.unite
-                })
-                .eq("id", serveur.id)
-                .then(function (resultat) {
+            operations.push(
+    supabaseClient
+        .from("stock")
+        .update({
+            quantite: ingredient.quantite,
+            unite: ingredient.unite
+        })
+        .eq("id", serveur.id)
+); {
 
                     if (resultat.error) {
 
