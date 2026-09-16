@@ -801,25 +801,14 @@ async function synchroniserRecettesSupabase() {
 
             if (serveur) {
 
-                supabaseClient
-                    .from("recettes")
-                    .delete()
-                    .eq("id", serveur.id)
-                    .then(function (resultat) {
+    operations.push(
+        supabaseClient
+            .from("recettes")
+            .delete()
+            .eq("id", serveur.id)
+    );
 
-                        if (resultat.error) {
-
-                            console.error(
-                                "Erreur suppression recette :",
-                                resultat.error
-                            );
-
-                        }
-
-                    });
-
-            }
-
+}
         }
     );
 
