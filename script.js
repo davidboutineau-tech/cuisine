@@ -216,6 +216,7 @@ function sauvegarder() {
 
     synchroniserStockSupabase();
     synchroniserListeCoursesSupabase();
+    synchroniserRecettesSupabase();
 }
 
 // ========================================
@@ -312,6 +313,52 @@ async function synchroniserListeCoursesSupabase() {
     }
 
     console.log("✅ Liste de courses synchronisée avec Supabase");
+}
+
+// ========================================
+// SYNCHRONISER LES RECETTES AVEC SUPABASE
+// ========================================
+async function synchroniserRecettesSupabase() {
+
+    const { error: erreurSuppression } =
+        await supabaseClient
+            .from("recettes")
+            .delete()
+            .neq("id", 0);
+
+    if (erreurSuppression) {
+        console.error(
+            "Erreur suppression recettes Supabase :",
+            erreurSuppression
+        );
+        return;
+    }
+
+    const donnees = recettes.map(function (recette) {
+        return {
+            nom: recette.nom,
+            ingredients: recette.ingredients,
+            instructions: recette.instructions || null
+        };
+    });
+
+    if (donnees.length > 0) {
+
+        const { error: erreurInsertion } =
+            await supabaseClient
+                .from("recettes")
+                .insert(donnees);
+
+        if (erreurInsertion) {
+            console.error(
+                "Erreur synchronisation recettes :",
+                erreurInsertion
+            );
+            return;
+        }
+    }
+
+    console.log("✅ Recettes synchronisées avec Supabase");
 }
 
 // ========================================
